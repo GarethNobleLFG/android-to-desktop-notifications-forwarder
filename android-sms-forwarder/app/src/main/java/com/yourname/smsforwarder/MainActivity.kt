@@ -1,16 +1,15 @@
 package com.yourname.smsforwarder
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import android.content.SharedPreferences
+import androidx.core.app.NotificationManagerCompat
 
 class MainActivity : AppCompatActivity() {
     private lateinit var etApiUrl: EditText
@@ -18,20 +17,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var sharedPrefs: SharedPreferences
     
-    private val SMS_PERMISSION_REQUEST_CODE = 100
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
         initViews()
         setupSharedPrefs()
-        requestSmsPermissions()
         loadSavedApiUrl()
         
         btnSaveUrl.setOnClickListener {
             saveApiUrl()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Check permission every time the app comes to the foreground
+        // in case they just returned from the settings screen
+        checkNotificationPermission()
     }
     
     private fun initViews() {
@@ -44,24 +47,20 @@ class MainActivity : AppCompatActivity() {
         sharedPrefs = getSharedPreferences("sms_forwarder_prefs", MODE_PRIVATE)
     }
     
-    private fun requestSmsPermissions() {
-        val permissions = arrayOf(
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS
-        )
-        
-        val permissionsNeeded = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        
-        if (permissionsNeeded.isNotEmpty()) {
-            ActivityCompat.requestPermissions(
-                this,
-                permissionsNeeded.toTypedArray(),
-                SMS_PERMISSION_REQUEST_CODE
-            )
-        } else {
-            updateStatus("SMS permissions granted")
+    private fun checkNotificationPermission() {
+        // Check if the app has been granted notification access
+        val hasPermission = NotificationManagerCompat.getEnabledListenerPackages(this)
+            .contains(packageName)
+            
+        if (!hasPermission) {
+            updateStatus("Notification permission needed")
+            Toast.makeText(this, "Please enable Notification Access for this app", Toast.LENGTH_LONG).show()
+            
+            // Redirect the user to the Notification Access settings screen
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } 
+        else {
+            updateStatus("Notification permissions granted")
         }
     }
     
@@ -71,7 +70,8 @@ class MainActivity : AppCompatActivity() {
             sharedPrefs.edit().putString("api_url", apiUrl).apply()
             Toast.makeText(this, "API URL saved", Toast.LENGTH_SHORT).show()
             updateStatus("API URL configured")
-        } else {
+        } 
+        else {
             Toast.makeText(this, "Please enter a valid API URL", Toast.LENGTH_SHORT).show()
         }
     }
@@ -86,26 +86,5 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateStatus(status: String) {
         tvStatus.text = "Status: $status"
-    }
-    
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        
-        when (requestCode) {
-            SMS_PERMISSION_REQUEST_CODE -> {
-                val allPermissionsGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
-                if (allPermissionsGranted) {
-                    updateStatus("All SMS permissions granted")
-                    Toast.makeText(this, "SMS permissions granted successfully", Toast.LENGTH_SHORT).show()
-                } else {
-                    updateStatus("SMS permissions denied")
-                    Toast.makeText(this, "SMS permissions are required for the app to work", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
     }
 }

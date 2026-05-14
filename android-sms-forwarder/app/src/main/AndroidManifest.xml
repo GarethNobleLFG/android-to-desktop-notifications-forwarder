@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.yourname.smsforwarder">
-
-    <!-- SMS Permissions -->
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
     
     <!-- Network Permission for API calls -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -35,16 +31,16 @@
             </intent-filter>
         </activity>
 
-        <!-- SMS Broadcast Receiver -->
-        <receiver
-            android:name=".SmsReceiver"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="1000">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+        <!-- Service for notificaitons -->
+        <service
+            android:name=".NotificationReceiverService"
+            android:label="Notification Forwarder"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
-        </receiver>
+        </service>
 
     </application>
 

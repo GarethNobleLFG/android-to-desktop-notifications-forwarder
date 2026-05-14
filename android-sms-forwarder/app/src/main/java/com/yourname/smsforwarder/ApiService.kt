@@ -16,7 +16,7 @@ class ApiService(private val context: Context) {
         private const val TIMEOUT_MS = 10000
     }
     
-    suspend fun forwardSms(smsData: SmsData): Boolean = withContext(Dispatchers.IO) {
+    suspend fun forwardNotification(notificationData: NotificationData): Boolean = withContext(Dispatchers.IO) {
         try {
             val apiUrl = getApiUrl()
             if (apiUrl.isEmpty()) {
@@ -24,14 +24,15 @@ class ApiService(private val context: Context) {
                 return@withContext false
             }
             
-            val jsonPayload = createJsonPayload(smsData)
+            val jsonPayload = createJsonPayload(notificationData)
             val response = sendHttpRequest(apiUrl, jsonPayload)
             
             Log.d(TAG, "API Response: $response")
             return@withContext true
             
-        } catch (e: Exception) {
-            Log.e(TAG, "Error forwarding SMS to API", e)
+        } 
+        catch (e: Exception) {
+            Log.e(TAG, "Error forwarding Notification to API", e)
             return@withContext false
         }
     }
@@ -41,13 +42,19 @@ class ApiService(private val context: Context) {
         return sharedPrefs.getString("api_url", "") ?: ""
     }
     
-    private fun createJsonPayload(smsData: SmsData): String {
+    private fun createJsonPayload(data: NotificationData): String {
         val jsonObject = JSONObject().apply {
-            put("sender", smsData.sender)
-            put("message", smsData.message)
-            put("timestamp", smsData.timestamp)
-            put("device_id", smsData.deviceId)
+            put("app_package", data.appPackage)
+            put("title", data.title)
+            put("message", data.message)
+            put("timestamp", data.timestamp)
+            put("device_id", data.deviceId)
             put("received_at", System.currentTimeMillis())
+            
+            // Only add the image if it exists
+            if (data.imageBase64 != null) {
+                put("image_base64", data.imageBase64)
+            }
         }
         return jsonObject.toString()
     }
@@ -65,7 +72,8 @@ class ApiService(private val context: Context) {
                 readTimeout = TIMEOUT_MS
                 setRequestProperty("Content-Type", "application/json")
                 setRequestProperty("Accept", "application/json")
-                setRequestProperty("User-Agent", "SMS-Forwarder-Android/1.0")
+                // Updated the user agent to reflect push notifications
+                setRequestProperty("User-Agent", "Push-Forwarder-Android/1.0") 
             }
             
             // Send JSON payload
@@ -80,17 +88,19 @@ class ApiService(private val context: Context) {
             // Read response
             val response = if (responseCode == HttpURLConnection.HTTP_OK) {
                 connection.inputStream.bufferedReader().readText()
-            } else {
+            } 
+            else {
                 connection.errorStream?.bufferedReader()?.readText() ?: "No error message"
             }
             
-            if (responseCode != HttpURLConnection.HTTP_OK) {
+            if (responseCode ! in 200..299) {
                 throw Exception("HTTP Error $responseCode: $response")
             }
             
             return response
             
-        } finally {
+        } 
+        finally {
             connection.disconnect()
         }
     }
