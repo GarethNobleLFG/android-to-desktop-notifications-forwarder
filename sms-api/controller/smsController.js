@@ -1,121 +1,90 @@
-const Messages = require('../models/message');
+const notiService = require('../services/notiServices');
 
-
-
-// Create new SMS message
+// Create new Notification message
 const saveMessage = async (req, res) => {
     try {
-        const { sender, message } = req.body;
+        const { app_package, title, message } = req.body;
 
-
-        // Check valid responses
-        if (!sender || !message) {
+        if (!app_package) {
             return res.status(400).json({
-                error: 'Missing required fields: sender and message'
+                error: 'Missing required fields: app_package'
             });
         }
 
+        const savedMessage = await notiService.saveNotification(req.body);
 
-        const newMessage = new Messages({
-            sender: sender,
-            message: message,
-            sent: false
-        })
+        console.log(`New push notification saved from ${app_package} (${title}): ${String(message).substring(0, 50)}...`);
 
-
-        const savedMessage = await newMessage.save();
-
-
-        console.log(`New SMS saved from ${sender}: ${message.substring(0, 50)}...`);
-
-
-        // Return success response
         res.status(201).json({
             status: 'success',
-            message: 'SMS saved successfully',
+            message: 'Notification saved successfully',
             id: savedMessage._id
         });
     }
     catch (error) {
-        console.error('Error saving SMS:', error);
+        console.error('Error saving Notification:', error);
         res.status(500).json({
-            error: 'Failed to save SMS',
+            error: 'Failed to save Notification',
             details: error.message
         });
     }
 };
 
-
-
-
-
-
 // Get latest messages for desktop overlay
 const getLatestMessages = async (req, res) => {
     try {
-
-        // Get messages from the past minute and have sent marked as false.
-        const oneMinuteAgo = new Date(Date.now() - 60 * 5000);
-        const messages = await Messages.find({
-            createdAt: { $gte: oneMinuteAgo },
-            sent: false
-        }).select('_id sender message sent createdAt');
-
-
-
-        // Format response for desktop overlay to use.
-        const formattedMessages = messages.map(msg => ({
-            id: msg._id,
-            sender: msg.sender,
-            message: msg.message,
-            timestamp: msg.createdAt
-        }));
-
-
-
-        // Mark all retrieved messages as sent.
-        const messageIds = [];
-        if (messages.length > 0) {
-            for (let i = 0; i < messages.length; i++) {
-                messageIds.push(messages[i]._id);
-            }
-
-            await Messages.updateMany(
-                { _id: { $in: messageIds } },
-                { $set: { sent: true } }
-            );
-            console.log(`Updated sent confirmation of ${messages.length} messages!`);
-        }
-
+        // Grab an optional date parameter from the URL (e.g., /latest?date=2026-05-14)
+        const targetDate = req.query.date; 
+        
+        const formattedMessages = await notiService.fetchLatest(targetDate);
 
         res.json({
             messages: formattedMessages
         });
     }
     catch (error) {
-        console.error('Error fetching/wiping messages:', error);
+        console.error('Error fetching messages:', error);
         res.status(500).json({
-            error: 'Failed to fetch and wipe messages'
+            error: 'Failed to fetch messages'
         });
     }
 };
 
+// Mark specific messages as read
+const markAsRead = async (req, res) => {
+    try {
+        const { ids } = req.body;
 
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'Please provide an array of message IDs.' });
+        }
 
+        const modifiedCount = await notiService.markNotificationsAsRead(ids);
 
-
+        res.status(200).json({
+            status: 'success',
+            message: `Successfully marked ${modifiedCount} messages as read.`
+        });
+    } catch (error) {
+        console.error('Error marking messages as read:', error);
+        res.status(500).json({
+            error: 'Failed to mark messages as read',
+            details: error.message
+        });
+    }
+};
 
 const deleteDb = async (req, res) => {
     try {
-        const deleteDb = await Messages.deleteMany({})
+        const deletedCount = await notiService.clearDatabase();
 
-        console.log(`Deleted DB: ${deleteDb.deletedCount}`);
+        console.log(`Deleted DB: ${deletedCount}`);
 
         res.status(200).json({
             status: 'success',
             message: 'Successfully deleted DB!',
-            deletedCount: deleteDb.deletedCount
-        })
+            deletedCount: deletedCount
+        });
     }
     catch (error) {
         console.error('Error deleting messages:', error);
@@ -124,15 +93,11 @@ const deleteDb = async (req, res) => {
             details: error.message
         });
     }
-}
-
-
-
-
-
+};
 
 module.exports = {
     saveMessage,
     getLatestMessages,
+    markAsRead,
     deleteDb
 };
