@@ -34,7 +34,7 @@ const saveMessage = async (req, res) => {
 // Get latest messages for desktop overlay
 const getLatestMessages = async (req, res) => {
     try {
-        const formattedMessages = await notiService.fetchLatest(targetDate);
+        const formattedMessages = await notiService.fetchLatest();
 
         res.json({
             messages: formattedMessages
