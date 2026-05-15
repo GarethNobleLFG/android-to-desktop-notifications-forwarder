@@ -22,6 +22,7 @@ export default function Overlay() {
         const pollNotis = async () => {
             try {
                 const newNotis = await fetchLatestNotifications();
+                console.log(`Contents of get new notifications: ${newNotis}`);
                 if (newNotis && newNotis.length > 0) {
                     setNotifications((prev) => {
                         const existingIds = new Set(prev.map(n => n.id));

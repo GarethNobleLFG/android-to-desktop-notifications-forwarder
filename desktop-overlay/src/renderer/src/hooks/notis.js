@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/sms-api';
+const API_BASE = process.env.VITE_API_URL;
 
 // Fetch the latest unread notifications
 export async function fetchLatestNotifications() {
