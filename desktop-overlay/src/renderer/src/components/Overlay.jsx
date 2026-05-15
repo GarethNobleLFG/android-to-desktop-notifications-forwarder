@@ -191,7 +191,7 @@ export default function Overlay() {
                                                 <img
                                                     src={`data:image/jpeg;base64,${noti.image_base64}`}
                                                     alt="attachment"
-                                                    className="w-full max-h-40 object-cover"
+                                                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-zinc-700/50 shadow-sm mt-0.5"
                                                 />
                                             </div>
                                         )}
