@@ -69,14 +69,16 @@ export default function Overlay() {
         audio.play().catch(err => console.error("Audio playback blocked:", err));
 
         const redBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+        const blueBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAA/sTYr9Y4OLAAAAABJRU5ErkJggg==";
 
         const testNotification = {
             id: `test-${Date.now()}`,
             app_package: 'com.tester.framer',
-            title: 'Test Notification',
+            title: 'Gareth Noble', 
             message: 'This is a mocked notification to test the UI animations, scrolling, and layout. It looks great!',
             timestamp: Date.now(),
-            image_base64: redBase64
+            image_base64: redBase64,  
+            icon_base64: blueBase64  
         };
         setNotifications(prev => [testNotification, ...prev]);
     };
@@ -145,7 +147,7 @@ export default function Overlay() {
                                             <div className="flex items-start gap-3 overflow-hidden pr-8">
                                                 {noti.icon_base64 ? (
                                                     <img
-                                                        src={`data:image/png;base64,${noti.icon_base64}`}
+                                                        src={`data:image/jpeg;base64,${noti.icon_base64}`} 
                                                         className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-zinc-700/50 shadow-sm mt-0.5"
                                                         alt="Icon"
                                                     />

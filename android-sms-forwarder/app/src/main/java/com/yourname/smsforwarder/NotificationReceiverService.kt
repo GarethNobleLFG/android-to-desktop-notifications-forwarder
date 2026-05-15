@@ -20,16 +20,10 @@ class NotificationReceiverService : NotificationListenerService() {
         val extras = notification.extras
         
         val appPackage = sbn.packageName
-        
-        // ONLY allow known SMS apps to be forwarded
-        val allowedSmsApps = listOf(
-            "com.google.android.apps.messaging", // Google Messages
-            "com.samsung.android.messaging"      // Samsung Messages
-        )
-        
-        // Skip this notification if it's not an SMS
-        if (appPackage !in allowedSmsApps) {
-            return 
+                
+        // Ignore core OS notifications to reduce spam, but let everything else through
+        if (appPackage == "android" || appPackage == "com.android.systemui") {
+            return
         }
         
         // 1. Extract Text Data
