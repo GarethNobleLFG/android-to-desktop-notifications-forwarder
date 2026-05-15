@@ -44,24 +44,24 @@ class NotificationReceiverService : NotificationListenerService() {
         // 3. Extract the Icon (Avatar/App Logo)
         var base64Icon: String? = null
         try {
-            val largeIcon = notification.getLargeIcon()
-            if (largeIcon != null) {
-                val drawable = largeIcon.loadDrawable(applicationContext)
-                if (drawable != null) {
-                    // Convert drawable to bitmap
-                    val bitmap = Bitmap.createBitmap(
-                        drawable.intrinsicWidth.coerceAtLeast(1),
-                        drawable.intrinsicHeight.coerceAtLeast(1),
-                        Bitmap.Config.ARGB_8888
-                    )
-                    val canvas = Canvas(bitmap)
-                    drawable.setBounds(0, 0, canvas.width, canvas.height)
-                    drawable.draw(canvas)
-                    base64Icon = bitmapToBase64(bitmap)
-                }
-            }
+            val pm = applicationContext.packageManager
+            val drawable = pm.getApplicationIcon(appPackage) // Grabs the official App Icon
+
+            val bitmap = Bitmap.createBitmap(
+                drawable.intrinsicWidth.coerceAtLeast(1),
+                drawable.intrinsicHeight.coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            
+            // Note: PNG compression might look cleaner for app icons than JPEG
+            // but your existing bitmapToBase64 helper works fine!
+            base64Icon = bitmapToBase64(bitmap)
+            
         } catch (e: Exception) {
-            Log.e("NotificationService", "Failed to extract icon", e)
+            Log.e("NotificationService", "Failed to extract app icon", e)
         }
 
         Log.d("NotificationService", "Push from $appPackage: $title - $messageBody (Has Image: ${picture != null}, Has Icon: ${base64Icon != null})")
