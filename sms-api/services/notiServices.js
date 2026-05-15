@@ -33,14 +33,8 @@ const markNotificationsAsRead = async (idsArray) => {
     return result.modifiedCount;
 };
 
-const clearDatabase = async () => {
-    const result = await messageRepo.deleteAll();
-    return result.deletedCount;
-};
-
 module.exports = {
     saveNotification,
     fetchLatest,
     markNotificationsAsRead,
-    clearDatabase
 };

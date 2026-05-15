@@ -1,4 +1,5 @@
 const notiService = require('../services/notiServices');
+const notiRepos = require('../repositories/messageRepository');
 
 // Create new Notification message
 const saveMessage = async (req, res) => {
@@ -76,9 +77,7 @@ const markAsRead = async (req, res) => {
 
 const deleteDb = async (req, res) => {
     try {
-        const deletedCount = await notiService.clearDatabase();
-
-        console.log(`Deleted DB: ${deletedCount}`);
+        const deletedCount = await notiRepos.deleteAll();
 
         res.status(200).json({
             status: 'success',

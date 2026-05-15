@@ -31,4 +31,9 @@ const deleteAll = async () => {
     return await Messages.deleteMany({});
 };
 
-module.exports = { create, findUnread, markAsRead, deleteAll };
+module.exports = { 
+    create, 
+    findUnread, 
+    markAsRead, 
+    deleteAll 
+};
