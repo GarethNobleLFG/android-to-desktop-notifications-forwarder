@@ -74,11 +74,11 @@ export default function Overlay() {
         const testNotification = {
             id: `test-${Date.now()}`,
             app_package: 'com.tester.framer',
-            title: 'Gareth Noble', 
+            title: 'Gareth Noble',
             message: 'This is a mocked notification to test the UI animations, scrolling, and layout. It looks great!',
             timestamp: Date.now(),
-            image_base64: redBase64,  
-            icon_base64: blueBase64  
+            image_base64: redBase64,
+            icon_base64: blueBase64
         };
         setNotifications(prev => [testNotification, ...prev]);
     };
@@ -147,9 +147,9 @@ export default function Overlay() {
                                             <div className="flex items-start gap-3 overflow-hidden pr-8">
                                                 {noti.icon_base64 ? (
                                                     <img
-                                                        src={`data:image/jpeg;base64,${noti.icon_base64}`} 
+                                                        src={`data:image/jpeg;base64,${noti.icon_base64}`}
                                                         className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-zinc-700/50 shadow-sm mt-0.5"
-                                                        alt="Icon"
+                                                        alt="App Icon"
                                                     />
                                                 ) : (
                                                     <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700/50 flex-shrink-0 flex items-center justify-center mt-0.5">
@@ -167,9 +167,19 @@ export default function Overlay() {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <span className="text-[10px] text-zinc-500 flex-shrink-0 pt-1 font-medium">
-                                                {new Date(noti.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
+
+                                            <div className="flex items-start gap-3 flex-shrink-0">
+                                                {noti.large_icon_base64 && (
+                                                    <img
+                                                        src={`data:image/jpeg;base64,${noti.large_icon_base64}`}
+                                                        className="w-10 h-10 rounded-full object-cover border border-zinc-700/50 shadow-sm"
+                                                        alt="Profile"
+                                                    />
+                                                )}
+                                                <span className="text-[10px] text-zinc-500 pt-1 font-medium">
+                                                    {new Date(noti.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <p className="text-sm text-zinc-300 leading-relaxed pr-8 line-clamp-4">

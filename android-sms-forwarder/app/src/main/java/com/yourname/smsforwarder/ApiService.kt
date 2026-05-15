@@ -60,6 +60,11 @@ class ApiService(private val context: Context) {
             if (data.iconBase64 != null) {
                 put("icon_base64", data.iconBase64)
             }
+            
+            // NEW: Only add the large icon if it exists
+            if (data.largeIconBase64 != null) {
+                put("large_icon_base64", data.largeIconBase64)
+            }
         }
         return jsonObject.toString()
     }

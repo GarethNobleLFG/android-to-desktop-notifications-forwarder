@@ -19,7 +19,8 @@ const fetchLatest = async (dateString) => {
         title: msg.title,
         message: msg.message,
         image_base64: msg.image_base64,
-        icon_base64: msg.icon_base64, 
+        icon_base64: msg.icon_base64,
+        large_icon_base64: msg.large_icon_base64, 
         timestamp: msg.timestamp
     }));
 };

@@ -41,12 +41,11 @@ class NotificationReceiverService : NotificationListenerService() {
             base64Image = bitmapToBase64(picture)
         }
 
-        // 3. Extract the Icon (Avatar/App Logo)
+        // 3. Extract the App Icon (Application Logo)
         var base64Icon: String? = null
         try {
             val pm = applicationContext.packageManager
-            val drawable = pm.getApplicationIcon(appPackage) // Grabs the official App Icon
-
+            val drawable = pm.getApplicationIcon(appPackage)
             val bitmap = Bitmap.createBitmap(
                 drawable.intrinsicWidth.coerceAtLeast(1),
                 drawable.intrinsicHeight.coerceAtLeast(1),
@@ -55,24 +54,43 @@ class NotificationReceiverService : NotificationListenerService() {
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)
-            
-            // Note: PNG compression might look cleaner for app icons than JPEG
-            // but your existing bitmapToBase64 helper works fine!
             base64Icon = bitmapToBase64(bitmap)
-            
-        } catch (e: Exception) {
+        } 
+        catch (e: Exception) {
             Log.e("NotificationService", "Failed to extract app icon", e)
         }
 
-        Log.d("NotificationService", "Push from $appPackage: $title - $messageBody (Has Image: ${picture != null}, Has Icon: ${base64Icon != null})")
-        
-        // 4. Package it up into our new Data Class (Includes iconBase64)
+        // 3.5. Extract the Large Icon (Profile Picture / Avatar)
+        var base64LargeIcon: String? = null
+        try {
+            val largeIcon = notification.getLargeIcon()
+            if (largeIcon != null) {
+                val drawable = largeIcon.loadDrawable(applicationContext)
+                if (drawable != null) {
+                    val bitmap = Bitmap.createBitmap(
+                        drawable.intrinsicWidth.coerceAtLeast(1),
+                        drawable.intrinsicHeight.coerceAtLeast(1),
+                        Bitmap.Config.ARGB_8888
+                    )
+                    val canvas = Canvas(bitmap)
+                    drawable.setBounds(0, 0, canvas.width, canvas.height)
+                    drawable.draw(canvas)
+                    base64LargeIcon = bitmapToBase64(bitmap)
+                }
+            }
+        } 
+        catch (e: Exception) {
+            Log.e("NotificationService", "Failed to extract large icon", e)
+        }
+
+        // 4. Package it up
         val data = NotificationData(
             appPackage = appPackage,
             title = title,
             message = messageBody,
             imageBase64 = base64Image,
             iconBase64 = base64Icon,
+            largeIconBase64 = base64LargeIcon, // NEW
             timestamp = sbn.postTime,
             deviceId = getDeviceId(applicationContext) 
         )
@@ -111,13 +129,13 @@ class NotificationReceiverService : NotificationListenerService() {
     }
 }
 
-// Our updated data model includes iconBase64
 data class NotificationData(
     val appPackage: String,
     val title: String,
     val message: String,
     val imageBase64: String?, 
     val iconBase64: String?,
+    val largeIconBase64: String?, 
     val timestamp: Long,
     val deviceId: String
 )

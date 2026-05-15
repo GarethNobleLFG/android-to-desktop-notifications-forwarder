@@ -29,7 +29,11 @@ const messageSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    icon_base64: {         
+    icon_base64: {
+        type: String,
+        required: false
+    },
+    large_icon_base64: {
         type: String,
         required: false
     },
