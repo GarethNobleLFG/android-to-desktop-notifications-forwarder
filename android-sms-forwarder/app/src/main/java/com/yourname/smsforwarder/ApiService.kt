@@ -93,7 +93,7 @@ class ApiService(private val context: Context) {
                 connection.errorStream?.bufferedReader()?.readText() ?: "No error message"
             }
             
-            if (responseCode ! in 200..299) {
+            if (responseCode !in 200..299) {
                 throw Exception("HTTP Error $responseCode: $response")
             }
             
