@@ -15,6 +15,9 @@ import java.util.UUID
 
 class NotificationReceiverService : NotificationListenerService() {
 
+    // Small cache to remember the last notification sent for each app.
+    private val lastSentNotifications = mutableMapOf<String, String>()
+
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val notification = sbn?.notification ?: return
         val extras = notification.extras
@@ -31,8 +34,18 @@ class NotificationReceiverService : NotificationListenerService() {
         val text = extras.getCharSequence("android.text")?.toString() ?: ""
         val bigText = extras.getCharSequence("android.bigText")?.toString() ?: ""
         
-        // Prioritize bigText if it exists because it holds the expanded message
         val messageBody = if (bigText.isNotEmpty()) bigText else text
+
+        // Create a unique fingerprint based on the title and message
+        val signature = "$title|$messageBody"
+        
+        // If the title and message body is the same content as the last time the app had a notifcation, ignore it.
+        if (lastSentNotifications[appPackage] == signature) {
+            return
+        }
+        
+        // Otherwise, remember this signature for next time
+        lastSentNotifications[appPackage] = signature
         
         // 2. Extract Image (if any) and convert to Base64
         var base64Image: String? = null
@@ -90,7 +103,7 @@ class NotificationReceiverService : NotificationListenerService() {
             message = messageBody,
             imageBase64 = base64Image,
             iconBase64 = base64Icon,
-            largeIconBase64 = base64LargeIcon, // NEW
+            largeIconBase64 = base64LargeIcon,
             timestamp = sbn.postTime,
             deviceId = getDeviceId(applicationContext) 
         )
@@ -106,7 +119,10 @@ class NotificationReceiverService : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
-        // Optional
+        // Optional: clear the cache when a notification is dismissed if you want
+        // a newly-posted identical notification to trigger again.
+        // val appPackage = sbn?.packageName ?: return
+        // lastSentNotifications.remove(appPackage)
     }
     
     // Helper to convert Android Bitmaps to Base64 string for JSON transit
